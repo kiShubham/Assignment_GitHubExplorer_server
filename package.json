@@ -1,0 +1,20 @@
+{
+  "name": "assignment_githubexplorer_server",
+  "version": "1.0.0",
+  "description": "Objective Create a backend service using Node.js and Express.js that interfaces with the GitHub API to fetch and persist user data. This service will support operations such as storing user details, identifying mutual followers, searching, updating, and soft deleting records in a database.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "express": "^4.19.2",
+    "mongoose": "^8.2.4",
+    "nodemon": "^3.1.0"
+  }
+}
