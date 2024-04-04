@@ -16,7 +16,7 @@ const saveUser = async (req, res) => {
     const exist = await userServices.search({
       username: resAPi.data.login.toLowerCase(),
     });
-    console.log(exist);
+
     if (exist.length) {
       throw new Error("user already exist");
     }
@@ -37,7 +37,7 @@ const saveUser = async (req, res) => {
       following: resAPi.data.following,
       availability: true,
     };
-    console.log(userData);
+
     const user = await userServices.register(userData);
     res.status(201).json({ message: "User registered successfully", user }); // change it accordingly
   } catch (error) {
