@@ -16,7 +16,8 @@ const saveUser = async (req, res) => {
     const exist = await userServices.search({
       username: resAPi.data.login.toLowerCase(),
     });
-    if (exist) {
+    console.log(exist);
+    if (exist.length) {
       throw new Error("user already exist");
     }
 
