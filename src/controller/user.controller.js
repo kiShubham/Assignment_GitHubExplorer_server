@@ -1,11 +1,23 @@
-// services ;
 const userServices = require("../services/user.services");
-
 const axios = require("axios");
+
+async function isUserExist(username) {
+  return (exist = await userServices.search({
+    username: username.toLowerCase(),
+  }));
+}
 
 const saveUser = async (req, res) => {
   try {
-    const username = req.params.username;
+    const { username } = req.params;
+    const exist = await isUserExist(username);
+    // const exist = await userServices.search({
+    //   username: username.toLowerCase(),
+    // });
+    if (exist.length) {
+      throw new Error("user already exist");
+    }
+
     const API = "https://api.github.com/users";
     const resAPi = await axios.get(`${API}/${username}`);
 
@@ -13,16 +25,12 @@ const saveUser = async (req, res) => {
       throw new Error("Failed to fetch user data");
     }
 
-    const exist = await userServices.search({
-      username: resAPi.data.login.toLowerCase(),
-    });
-
-    if (exist.length) {
-      throw new Error("user already exist");
-    }
+    const { followersData, followingData, friendsData } = await getFollowers(
+      username
+    );
 
     const userData = {
-      username: resAPi.data.login.toLowerCase(),
+      username: resAPi.data.login.toLowerCase(), // needed for search op.
       ID: resAPi.data.id,
       avatar_URL: resAPi.data.avatar_url,
       type: resAPi.data.type,
@@ -33,9 +41,15 @@ const saveUser = async (req, res) => {
       email: resAPi.data.email,
       bio: resAPi.data.bio,
       public_repos: resAPi.data.public_repos,
+      public_gists: resAPi.data.public_gists, // converted string into number in models automatically
       followers: resAPi.data.followers,
       following: resAPi.data.following,
       availability: true,
+      created_at: resAPi.data.created_at,
+      updated_at: resAPi.data.updated_at,
+      followersArray: followersData,
+      followingArray: followingData,
+      friends: friendsData,
     };
 
     const user = await userServices.register(userData);
@@ -45,18 +59,21 @@ const saveUser = async (req, res) => {
   }
 };
 
-const findFollowers = async (req, res) => {
+const findMutualFollowers = async (req, res) => {
   try {
-    const username = req.params.username;
+    const { username } = req.params;
+
+    const exist = await isUserExist(username);
+    if (!exist.length) {
+      throw new Error("user don't exist");
+    }
+
     const result = await userServices.search({ username: username });
+    const friends = result[0].friends;
 
-    // *we cannot find mutual friends because , user following link is not responding for any user we can check api
-
-    const data = {
-      followers: result.followers || 0,
-      following: result.following || 0,
-    };
-    return res.status(200).json({ message: "mutual friends not found", data });
+    return friends.length
+      ? res.status(200).json({ message: "mutual friends found ", friends })
+      : res.sendStatus(204);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -67,9 +84,10 @@ const searchUser = async (req, res) => {
     // const filterSearch = req.body;
     let filter = {};
     Object.keys(req.body).forEach((key) => {
-      // Assign key-value pairs to the filter object
+      // Assigning key-value pairs to the filter object
       filter[key] = req.body[key];
     });
+    // console.log(filter);
     const result = await userServices.search(filter);
 
     res.status(200).json({ message: "search result", result });
@@ -80,7 +98,12 @@ const searchUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const username = req.params.username;
+    const exist = await isUserExist(username);
+    if (!exist.length) {
+      throw new Error("user don't exist");
+    }
+
+    const { username } = req.params;
     const data = { availability: false };
     const result = await userServices.deleteUser(username, data);
     res.status(200).json({ message: `${username} data deleted`, result });
@@ -91,8 +114,13 @@ const deleteUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
+    const exist = await isUserExist(username);
+    if (!exist.length) {
+      throw new Error("user don't exist");
+    }
+
     const update = req.body;
-    const username = req.params.username;
+    const { username } = req.params;
     const result = await userServices.updateUser(username, update);
     res.status(200).json({ message: `updated user`, result });
   } catch (error) {
@@ -102,18 +130,40 @@ const updateUser = async (req, res) => {
 
 const listUser = async (req, res) => {
   try {
-    const result = await userServices.fetchAll();
+    // console.log(req.query);//{ location: 'china', type: 'User' }
+    const { sortBy } = req.query;
+
+    const result = await userServices.fetchAll(sortBy);
     res.status(200).json({ message: "fetched all user", result });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+async function getFollowers(username) {
+  const res1 = await axios.get(
+    `https://api.github.com/users/${username}/followers`
+  );
+  const res2 = await axios.get(
+    `https://api.github.com/users/${username}/following`
+  );
+
+  const found = res1.data.filter((e) =>
+    res2.data.find((unit) => unit.login === e.login)
+  ); // mutual connection
+
+  return {
+    followersData: res1.data,
+    followingData: res2.data,
+    friendsData: found,
+  };
+}
+
 module.exports = {
   listUser,
   updateUser,
   deleteUser,
   searchUser,
-  findFollowers,
+  findMutualFollowers,
   saveUser,
 };
