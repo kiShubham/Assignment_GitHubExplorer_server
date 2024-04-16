@@ -1,2 +1,15 @@
-//check whether or not given req.body.title is string or not ;
-//check whther already stored in db
+//import validating fn;
+
+const { validate } = require("../validation/user.validate");
+
+const validateUsername = async (req, res, next) => {
+  const { username } = req.params;
+
+  const result = await validate(username);
+  if (!result) {
+    res.send(400).json({ message: "username error" }); //bad request
+  }
+  return next();
+};
+
+module.exports = { validateUsername };

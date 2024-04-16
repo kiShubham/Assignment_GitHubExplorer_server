@@ -1,19 +1,11 @@
 const userServices = require("../services/user.services");
 const axios = require("axios");
 
-async function isUserExist(username) {
-  return (exist = await userServices.search({
-    username: username.toLowerCase(),
-  }));
-}
-
 const saveUser = async (req, res) => {
   try {
     const { username } = req.params;
+
     const exist = await isUserExist(username);
-    // const exist = await userServices.search({
-    //   username: username.toLowerCase(),
-    // });
     if (exist.length) {
       throw new Error("user already exist");
     }
@@ -44,12 +36,13 @@ const saveUser = async (req, res) => {
       public_gists: resAPi.data.public_gists, // converted string into number in models automatically
       followers: resAPi.data.followers,
       following: resAPi.data.following,
+      friends: friendsData.length,
       availability: true,
       created_at: resAPi.data.created_at,
       updated_at: resAPi.data.updated_at,
       followersArray: followersData,
       followingArray: followingData,
-      friends: friendsData,
+      friendsArray: friendsData,
     };
 
     const user = await userServices.register(userData);
@@ -130,7 +123,6 @@ const updateUser = async (req, res) => {
 
 const listUser = async (req, res) => {
   try {
-    // console.log(req.query);//{ location: 'china', type: 'User' }
     const { sortBy } = req.query;
 
     const result = await userServices.fetchAll(sortBy);
@@ -140,6 +132,12 @@ const listUser = async (req, res) => {
   }
 };
 
+async function isUserExist(username) {
+  return (exist = await userServices.search({
+    username: username.toLowerCase(),
+  }));
+}
+
 async function getFollowers(username) {
   const res1 = await axios.get(
     `https://api.github.com/users/${username}/followers`
@@ -147,6 +145,9 @@ async function getFollowers(username) {
   const res2 = await axios.get(
     `https://api.github.com/users/${username}/following`
   );
+  /*
+   *we have hardcoded these links because the "following" links provided by the api are add with some unwanted "%" that gives error;
+   */
 
   const found = res1.data.filter((e) =>
     res2.data.find((unit) => unit.login === e.login)

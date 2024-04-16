@@ -15,12 +15,13 @@ const UserSchema = new mongoose.Schema({
   public_gists: { type: Number, required: true },
   followers: { type: Number, required: true },
   following: { type: Number, required: true },
+  friends: { type: Number, required: true, default: 0 },
   availability: { type: Boolean, default: true },
   created_at: { type: Date, required: true },
   updated_at: { type: Date, required: true },
   followersArray: { type: Array, default: [] },
   followingArray: { type: Array, default: [] },
-  friends: { type: Array, default: [] },
+  friendsArray: { type: Array, default: [] },
 });
 
 //mutual connection refer as friends : person who is in both array follower and following
