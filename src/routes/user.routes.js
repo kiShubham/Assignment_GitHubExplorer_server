@@ -3,16 +3,31 @@ const router = require("express").Router();
 //import controller
 const userController = require("../controller/user.controller");
 
-router.get("/save-user/:username", userController.saveUser); //^^
+//importmiddleware
+const { validateUsername } = require("../middleware/validateUser");
 
-router.get("/find-mutual-followers/:username", userController.findFollowers); //^^
+router.get("/save-user/:username", validateUsername, userController.saveUser);
 
-router.get("/search-users", userController.searchUser); //^^
+router.get(
+  "/find-mutual-followers/:username",
+  validateUsername,
+  userController.findMutualFollowers
+);
 
-router.delete("/delete-user/:username", userController.deleteUser); //^^ changes availability as false ; soft_deletion
+router.get("/search-users", userController.searchUser);
 
-router.patch("/update-user/:username", userController.updateUser); //^^
+router.delete(
+  "/delete-user/:username",
+  validateUsername,
+  userController.deleteUser
+); //^^ changes availability as false ; soft_deletion
 
-router.get("/list-users", userController.listUser); //^^
+router.patch(
+  "/update-user/:username",
+  validateUsername,
+  userController.updateUser
+);
+
+router.get("/list-users", userController.listUser);
 
 module.exports = router;

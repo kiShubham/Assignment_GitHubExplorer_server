@@ -12,7 +12,6 @@ const register = async (data) => {
 const search = async (data) => {
   try {
     const res = await User.find(data);
-    console.log(res);
     return res;
   } catch (error) {
     throw error;
@@ -25,7 +24,6 @@ const deleteUser = async (username, obj) => {
     const update = { $set: obj };
     const options = { new: true };
     const res = await User.findOneAndUpdate(filter, update, options);
-    console.log(res);
     return res;
   } catch (error) {
     throw error;
@@ -44,9 +42,11 @@ const updateUser = async (username, updateData) => {
   }
 };
 
-const fetchAll = async () => {
+const fetchAll = async (sortBy) => {
   try {
-    return await User.find();
+    let sortQuery = {};
+    sortQuery[sortBy] = 1;
+    return await User.find().sort(sortQuery);
   } catch (error) {
     throw error;
   }
