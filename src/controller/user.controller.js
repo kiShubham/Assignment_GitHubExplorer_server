@@ -43,6 +43,7 @@ const saveUser = async (req, res) => {
       followersArray: followersData,
       followingArray: followingData,
       friendsArray: friendsData,
+      repoUrl: resAPi.data.repos_url,
     };
 
     const user = await userServices.register(userData);
