@@ -22,6 +22,7 @@ const UserSchema = new mongoose.Schema({
   followersArray: { type: Array, default: [] },
   followingArray: { type: Array, default: [] },
   friendsArray: { type: Array, default: [] },
+  repoUrl: { type: String, default: "" },
 });
 
 //mutual connection refer as friends : person who is in both array follower and following
