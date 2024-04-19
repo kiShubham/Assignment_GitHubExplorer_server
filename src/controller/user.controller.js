@@ -7,7 +7,14 @@ const saveUser = async (req, res) => {
 
     const exist = await isUserExist(username);
     if (exist.length) {
-      throw new Error("user already exist");
+      // console.log(exist);
+      // return res
+      //   .status(409)
+      //   .json({ message: "user already exist,try another username" }); // 409 conflict
+      return res
+        .status(200)
+        .json({ message: "User already registered ", user: exist[0] });
+      //!returning user even if it is already register
     }
 
     const API = "https://api.github.com/users";
